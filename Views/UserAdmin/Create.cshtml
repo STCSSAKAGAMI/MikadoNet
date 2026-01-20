@@ -1,0 +1,26 @@
+@model MikadoNet.Models.UserCreateViewModel
+
+@{
+    ViewData["Title"] = "ユーザー作成";
+}
+
+<h1>ユーザー作成</h1>
+
+<form asp-action="Create" method="post">
+    <div>
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" />
+        <span asp-validation-for="UserName"></span>
+    </div>
+    <div>
+        <label asp-for="Password"></label>
+        <input asp-for="Password" />
+        <span asp-validation-for="Password"></span>
+    </div>
+    <div>
+        <label asp-for="TantoCode"></label>
+        <input asp-for="TantoCode" type="number" />
+        <span asp-validation-for="TantoCode"></span>
+    </div>
+    <button type="submit">作成</button>
+</form>

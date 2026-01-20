@@ -1,0 +1,27 @@
+@model MikadoNet.Models.UserEditViewModel
+
+@{
+    ViewData["Title"] = "ユーザー編集";
+}
+
+<h1>ユーザー編集</h1>
+
+<form asp-action="Edit" method="post">
+    <input asp-for="Id" type="hidden" />
+    <div>
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" />
+        <span asp-validation-for="UserName"></span>
+    </div>
+    <div>
+        <label asp-for="TantoCode"></label>
+        <input asp-for="TantoCode" type="number" />
+        <span asp-validation-for="TantoCode"></span>
+    </div>
+    <div>
+        <label asp-for="NewPassword"></label>
+        <input asp-for="NewPassword" />
+        <span asp-validation-for="NewPassword"></span>
+    </div>
+    <button type="submit">更新</button>
+</form>

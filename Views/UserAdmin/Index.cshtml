@@ -1,0 +1,33 @@
+@model IReadOnlyList<MikadoNet.Models.UserListItem>
+
+@{
+    ViewData["Title"] = "ユーザー管理";
+}
+
+<h1>ユーザー管理</h1>
+
+<p>
+    <a asp-action="Create">新規作成</a>
+</p>
+
+<table>
+    <thead>
+    <tr>
+        <th>ユーザー名</th>
+        <th>TantoCode</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var user in Model)
+    {
+        <tr>
+            <td>@user.UserName</td>
+            <td>@user.TantoCode</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@user.Id">編集</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

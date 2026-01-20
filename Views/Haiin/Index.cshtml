@@ -1,0 +1,269 @@
+@{
+    ViewData["Title"] = "配員カレンダー";
+}
+@model MikadoNet.Models.HaiinViewModel
+
+<div class="haiin-page">
+    <header class="haiin-header">
+        <h1>配員・配置管理</h1>
+        <div class="haiin-controls">
+            <button type="button" class="haiin-btn" id="todayButton">今日</button>
+            <div class="haiin-date">
+                <label for="baseDate">基準日</label>
+                <input id="baseDate" type="date" />
+                <button type="button" class="haiin-btn haiin-btn--primary" id="refreshButton">更新</button>
+            </div>
+            <div class="haiin-period" id="periodLabel">表示期間: -</div>
+        </div>
+    </header>
+
+    <section class="haiin-grid">
+        <div class="haiin-grid__header">
+            <div class="haiin-grid__corner">担当者</div>
+            <div class="haiin-grid__dates" id="dateHeader"></div>
+        </div>
+        <div class="haiin-grid__body" id="calendarBody">
+            @if (Model.Assignees.Count == 0)
+            {
+                <div class="haiin-grid__row">
+                    <div class="haiin-grid__assignee">担当者データなし</div>
+                    <div class="haiin-grid__cells">
+                        <div class="haiin-grid__cell">-</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                foreach (var assignee in Model.Assignees)
+                {
+                    var assigneeLabel = assignee.ShortName ?? assignee.AssigneeName ?? assignee.AssigneeCode.ToString();
+                    <div class="haiin-grid__row">
+                        <div class="haiin-grid__assignee">@assigneeLabel</div>
+                        <div class="haiin-grid__cells"></div>
+                    </div>
+                }
+            }
+        </div>
+    </section>
+</div>
+
+<script>
+    const dayCount = 63;
+    const dayLabels = ["日", "月", "火", "水", "木", "金", "土"];
+    const dateHeader = document.getElementById("dateHeader");
+    const calendarBody = document.getElementById("calendarBody");
+    const baseDateInput = document.getElementById("baseDate");
+    const periodLabel = document.getElementById("periodLabel");
+    const todayButton = document.getElementById("todayButton");
+    const refreshButton = document.getElementById("refreshButton");
+
+    const formatMonthDay = (date) => `${date.getMonth() + 1}/${date.getDate()}`;
+    const formatPeriod = (start, end) => `表示期間: ${formatMonthDay(start)} 〜 ${formatMonthDay(end)}`;
+
+    const buildHeader = (startDate) => {
+        dateHeader.innerHTML = "";
+        for (let i = 0; i < dayCount; i += 1) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+            const day = date.getDay();
+            const cell = document.createElement("div");
+            cell.className = "haiin-grid__day";
+            if (day === 0 || day === 6) {
+                cell.classList.add("haiin-grid__day--weekend");
+            }
+            cell.innerHTML = `${formatMonthDay(date)}<br />${dayLabels[day]}`;
+            dateHeader.appendChild(cell);
+        }
+    };
+
+    const buildRows = (startDate) => {
+        const rows = calendarBody.querySelectorAll(".haiin-grid__row");
+        rows.forEach((row) => {
+            const cells = row.querySelector(".haiin-grid__cells");
+            if (!cells) {
+                return;
+            }
+            cells.innerHTML = "";
+            for (let i = 0; i < dayCount; i += 1) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                const day = date.getDay();
+                const cell = document.createElement("div");
+                cell.className = "haiin-grid__cell";
+                if (day === 0 || day === 6) {
+                    cell.classList.add("haiin-grid__cell--weekend");
+                }
+                cells.appendChild(cell);
+            }
+        });
+    };
+
+    const refreshCalendar = (baseDate) => {
+        const start = new Date(baseDate);
+        const end = new Date(baseDate);
+        end.setDate(baseDate.getDate() + dayCount - 1);
+        periodLabel.textContent = formatPeriod(start, end);
+        buildHeader(start);
+        buildRows(start);
+    };
+
+    const setToday = () => {
+        const today = new Date();
+        baseDateInput.value = today.toISOString().split("T")[0];
+        refreshCalendar(today);
+    };
+
+    todayButton.addEventListener("click", setToday);
+    refreshButton.addEventListener("click", () => {
+        if (!baseDateInput.value) {
+            setToday();
+            return;
+        }
+        refreshCalendar(new Date(baseDateInput.value));
+    });
+
+    setToday();
+</script>
+
+<style>
+    :root {
+        --haiin-border: #d7d7d7;
+        --haiin-weekend: #fbe4e4;
+        --haiin-header: #ffd4d4;
+    }
+
+    .haiin-page {
+        font-family: "Yu Gothic", "Meiryo", sans-serif;
+        padding: 16px 20px;
+        color: #1f2937;
+        background: #f8f8f8;
+    }
+
+    .haiin-header {
+        margin-bottom: 16px;
+        background: var(--haiin-header);
+        padding: 12px 16px;
+        border: 1px solid var(--haiin-border);
+    }
+
+    .haiin-header h1 {
+        font-size: 20px;
+        margin: 0 0 8px;
+    }
+
+    .haiin-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .haiin-date {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #ffffff;
+        padding: 4px 8px;
+        border: 1px solid var(--haiin-border);
+    }
+
+    .haiin-date input {
+        border: 1px solid var(--haiin-border);
+        padding: 2px 6px;
+    }
+
+    .haiin-btn {
+        border: 1px solid var(--haiin-border);
+        background: #ffffff;
+        padding: 4px 10px;
+        cursor: pointer;
+    }
+
+    .haiin-btn--primary {
+        background: #ffe8a3;
+        border-color: #e2c266;
+    }
+
+    .haiin-period {
+        margin-left: auto;
+        font-weight: 600;
+    }
+
+    .haiin-grid {
+        border: 1px solid var(--haiin-border);
+        background: #ffffff;
+        overflow-x: auto;
+    }
+
+    .haiin-grid__header {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        border-bottom: 1px solid var(--haiin-border);
+    }
+
+    .haiin-grid__corner {
+        background: #ffe9c7;
+        padding: 8px;
+        border-right: 1px solid var(--haiin-border);
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .haiin-grid__dates {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 40px;
+    }
+
+    .haiin-grid__day {
+        border-right: 1px solid var(--haiin-border);
+        padding: 4px 2px;
+        text-align: center;
+        font-size: 12px;
+        background: #ffffff;
+    }
+
+    .haiin-grid__day--weekend {
+        background: var(--haiin-weekend);
+    }
+
+    .haiin-grid__body {
+        display: grid;
+        grid-auto-rows: 44px;
+    }
+
+    .haiin-grid__row {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        border-bottom: 1px solid var(--haiin-border);
+    }
+
+    .haiin-grid__assignee {
+        background: #ffe9c7;
+        padding: 10px;
+        border-right: 1px solid var(--haiin-border);
+        font-weight: 600;
+    }
+
+    .haiin-grid__cells {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 40px;
+    }
+
+    .haiin-grid__cell {
+        border-right: 1px solid var(--haiin-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    .haiin-grid__cell--weekend {
+        background: var(--haiin-weekend);
+    }
+
+    .haiin-mark {
+        font-weight: 700;
+    }
+</style>
